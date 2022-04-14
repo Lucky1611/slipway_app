@@ -25,7 +25,7 @@ node() {
       }
     }
 
-    stage("Deploy App using Ansible in WEST") {
+    stage("Deploy App using Ansible in EAST") {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'nexusCred', usernameVariable: 'nexus_username', passwordVariable: 'nexus_password']]) {
         sh """
         ansible-playbook -i aws_ec2.yaml -u ubuntu --private-key=/home/jenkins/experiment-slipway-key-pair.pem deploy_app.yml --extra-vars "version=1.0.${env.BUILD_NUMBER}  nexus_ip=${nexus_ip} nexus_username=${nexus_username} nexus_password=${nexus_password}" -v
@@ -33,10 +33,10 @@ node() {
       } 
     }
 
-    stage("Deploy App using Ansible in SOUTH") {
+    stage("Deploy App using Ansible in WEST") {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'nexusCred', usernameVariable: 'nexus_username', passwordVariable: 'nexus_password']]) {
         sh """
-         sed -i "s/regions.*/regions: ap-south-1/g" aws_ec2.yaml 
+         sed -i "s/regions.*/regions: us-west-1/g" aws_ec2.yaml 
         ansible-playbook -i aws_ec2.yaml -u ubuntu --private-key=/home/jenkins/experiment-slipway-key-pair.pem deploy_app.yml --extra-vars "version=1.0.${env.BUILD_NUMBER}  nexus_ip=${nexus_ip} nexus_username=${nexus_username} nexus_password=${nexus_password}" -v
       """
       }  
