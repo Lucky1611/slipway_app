@@ -1,0 +1,62 @@
+- hosts: all
+  become: yes
+  serial: 1
+  tasks:
+
+  - name: Install java and update  dependencies
+    shell: sudo apt-get update -y ; sudo apt-get install openjdk-11-jdk -y
+
+  - name: Download maven and Git in remote system
+    package:
+      name:
+       - git
+       - software-properties-common
+      # - default-jdk
+       - wget
+       - unzip
+      state: present
+
+  - name: Download file from artifactory
+    get_url:
+      url: "http://{{ nexus_ip }}/nexus/content/repositories/releases/slipway/DemoApp/{{ version }}/DemoApp-{{ version }}.zip"
+      dest: /home/ubuntu/
+      username: "{{ nexus_username }}"
+      password: "{{ nexus_password }}"
+      mode: 0644
+
+  - name: Extract DemoApp zip file
+    unarchive:
+      src: /home/ubuntu/DemoApp-{{ version }}.zip
+      dest: /home/ubuntu/
+      remote_src: yes
+      owner: root
+      group: root
+      mode: '0755'
+  
+  - name: get  AZ 
+    shell: curl http://169.254.169.254/latest/meta-data/placement/availability-zone
+    register: az
+  - debug:
+      msg: "{{az.stdout}}"
+
+  - name: TO check app running process
+    shell: "ps -ef | grep java| grep -v '/usr/bin/process-exporter' | grep -v grep | tr -s ' ' | cut -d ' ' -f 2"
+    register: app_process_id 
+
+  - name: app running process id
+    debug:
+      msg: "{% for pid in app_process_id.stdout_lines %} {{pid}} {% endfor %}"
+  
+  - name: kill the app process id
+    shell: "kill -9 {% for pid in app_process_id.stdout_lines %} {{pid}} {% endfor %}" 
+    ignore_errors: true
+
+  - name: Deploy the SprintBoot Application
+    shell: "cd /home/ubuntu/opstest/ ; nohup ./mvnw spring-boot:run &"
+    environment: 
+      AZ: "{{az.stdout}}"
+
+  - shell: sleep 60 ; curl -v http://localhost:8080/hello/
+    register: curl
+  - debug:
+      msg: "{{curl}}"
