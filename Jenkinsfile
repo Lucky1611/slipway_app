@@ -1,4 +1,4 @@
-def nexus_ip = "54.73.228.158:8081"
+def nexus_ip = "54.221.69.188:8081"
 def slackChannel = "#demoapp_alerts"
 
 node() {
