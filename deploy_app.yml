@@ -56,7 +56,7 @@
     environment: 
       AZ: "{{az.stdout}}"
 
-  - shell: sleep 60 ; curl -v http://localhost:8080/hello/
+  - shell: sleep 60 ; curl -v http://localhost:8080/book/getAll
     register: curl
   - debug:
       msg: "{{curl}}"
