@@ -53,7 +53,8 @@
 
   - name: Deploy the SprintBoot Application
     shell: "cd /home/ubuntu/opstest/ ; nohup ./mvnw spring-boot:run &"
-    environment: 
-      AZ: "{{az.stdout}}"
 
-
+  - shell: sleep 60 ; curl -v http://localhost:8080/book/getAll
+    register: curl
+  - debug:
+      msg: "{{curl}}"
