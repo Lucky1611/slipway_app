@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="description" content="">
+<meta name="author" content="">
+
+<title>Manage Books</title>
+<!-- Custom fonts for this template-->
+<link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"
+	type="text/css">
+<link
+	href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+	rel="stylesheet">
+
+<!-- Custom styles for this template-->
+<link href="/css/sb-admin-2.min.css" rel="stylesheet">
+
+<script>
+	window.onload = function() {
+		$.ajax({
+			type : 'GET',
+			url : '/book/getAll',
+			success : function(res) { // Has to be there !
+				console.log("Response ");
+				var tblBody = document.getElementById("tblBookBody");
+				tblBody.innerHTML="";
+			
+				for (let i = 0; i < res.length; i++) {
+					var tr = document.createElement("tr");
+					var tdId = document.createElement("td");
+					tdId.innerHTML = res[i].id;
+					var tdName = document.createElement("td");
+					tdName.innerHTML = res[i].name;
+					var tdTitle = document.createElement("td");
+					tdTitle.innerHTML = res[i].title;
+					var tdAuthor = document.createElement("td");
+					tdAuthor.innerHTML = res[i].author;
+					var tdPrice = document.createElement("td");
+					tdPrice.innerHTML = res[i].price;
+
+					tr.appendChild(tdId);
+					tr.appendChild(tdName);
+					tr.appendChild(tdTitle);
+					tr.appendChild(tdAuthor);
+					tr.appendChild(tdPrice);
+
+					tblBody.appendChild(tr);
+
+				}
+			},
+
+			error : function(result, statut, error) { // Handle errors
+				alert(error);
+			}
+		});
+		
+		$.ajax({
+			type : 'GET',
+			url : '/purchase/history',
+			success : function(res) { // Has to be there !
+				console.log("Response ");
+				var tblBody = document.getElementById("tblPurchaseBody");
+				tblBody.innerHTML="";
+			
+				for (let i = 0; i < res.length; i++) {
+					console.log(res[i]);
+					var tr = document.createElement("tr");
+					var tdId = document.createElement("td");
+					tdId.innerHTML = res[i].id;
+/* 					var tdName = document.createElement("td");
+					tdName.innerHTML = res[i].user_id;
+ */					var tdTitle = document.createElement("td");
+					tdTitle.innerHTML = res[i].book_id;
+
+					tr.appendChild(tdId);
+	/* 				tr.appendChild(tdName);
+	 */				tr.appendChild(tdTitle);
+
+					tblBody.appendChild(tr);
+				}
+			},
+			error : function(result, statut, error) { // Handle errors
+				alert(error);
+			}
+		})
+
+
+		document.getElementById('tblDataTable').onclick = function(event) {
+			event = event || window.event; //for IE8 backward compatibility
+			var target = event.target || event.srcElement; //for IE8 backward compatibility
+			while (target && target.nodeName != 'TR') {
+				target = target.parentElement;
+			}
+			var cells = target.cells; //cells collection
+			//var cells = target.getElementsByTagName('td'); //alternative
+			if (!cells.length || target.parentNode.nodeName == 'THEAD') { // if clicked row is within thead
+				return;
+			}
+			$("#txtId").val(cells[0].innerHTML);
+			$("#txtName").val(cells[1].innerHTML);
+			$("#txtTitle").val(cells[2].innerHTML);
+			$("#txtAuthor").val(cells[3].innerHTML);
+			$("#txtPrice").val(cells[4].innerHTML);
+
+		}
+
+	}
+	
+	function validate() {
+		$("#lblError").text("");
+		var id = $("#txtId").val();
+		var firstName = $("#txtName").val();
+		var lastName = $("#txtTitle").val();
+		var email = $("#txtAuthor").val();
+		var mobNo = $("#txtPrice").val();
+		if (firstName.length == 0 || lastName.length == 0 || email.length == 0
+				|| mobNo.length == 0) {
+			$("#lblError").text("Pleae fill all text fields");
+			return false;
+		}
+		if (isNaN(mobNo)) {
+			$("#lblError").text("Pleae fill number in price");
+			return false;
+		}
+
+		return true;
+	}
+	
+	function addBook() {
+		if (!validate())
+			return;
+		var data = {
+			name : $("#txtName").val(),
+			title : $("#txtTitle").val(),
+			author : $("#txtAuthor").val(),
+			price : $("#txtPrice").val()
+		};
+
+		console.log(data);
+		$
+				.ajax({
+					type : 'POST',
+					url : '/book/add',
+					data : JSON.stringify(data),
+					contentType : 'application/json',
+					success : function(res) { // Has to be there !
+						if (res == true) {
+							document.getElementById("lblError").innerHTML = "Book Added";
+							window.location.reload();
+
+						} else {
+							document.getElementById("lblError").innerHTML = "Book Not Added";
+						}
+					},
+
+					error : function(result, statut, error) { // Handle errors
+						alert(error);
+					}
+				})
+	}
+	
+	function updateBook() {
+		if (!validate())
+			return;
+		var data = {
+			id : $("#txtId").val(),
+			name : $("#txtName").val(),
+			title : $("#txtTitle").val(),
+			author : $("#txtAuthor").val(),
+			price : $("#txtPrice").val()
+		};
+
+		console.log(data);
+		$
+				.ajax({
+					type : 'POST',
+					url : '/book/update',
+					data : JSON.stringify(data),
+					contentType : 'application/json',
+					success : function(res) { // Has to be there !
+						if (res == true) {
+							document.getElementById("lblError").innerHTML = "Book Updated";
+							window.location.reload();
+
+						} else {
+							document.getElementById("lblError").innerHTML = "Book Not Updated";
+						}
+					},
+
+					error : function(result, statut, error) { // Handle errors
+						alert(error);
+					}
+				})
+	}
+	
+	function deleteBook() {
+		if ($("#txtId").val().length == 0) {
+			$("#lblError").text("Please select a User to continue");
+			return;
+		}
+		var data = {
+			id : $("#txtId").val()
+		};
+
+		console.log(data);
+		$
+				.ajax({
+					type : 'POST',
+					url : '/book/delete',
+					data : JSON.stringify(data),
+					contentType : 'application/json',
+					success : function(res) { // Has to be there !
+						if (res == true) {
+							document.getElementById("lblError").innerHTML = "Book Deleted";
+							window.location.reload();
+
+						} else {
+							document.getElementById("lblError").innerHTML = "Book Not Deleted";
+						}
+					},
+
+					error : function(result, statut, error) { // Handle errors
+						alert(error);
+					}
+				})
+	}
+
+	function Logout() {
+		window.location.href = "/user/logout"
+	}
+
+	function searchByName() {
+		$.ajax({
+			url : '/book/getBookByName?name='+$('#txtSearch').val(),
+			contentType: "x-www-form-urlencoded",
+			success : function(res) { // Has to be there !
+				console.log("Response ");
+				var tblBody = document.getElementById("tblBookBody");
+				tblBody.innerHTML="";
+			
+				for (let i = 0; i < res.length; i++) {
+					var tr = document.createElement("tr");
+					var tdId = document.createElement("td");
+					tdId.innerHTML = res[i].id;
+					var tdName = document.createElement("td");
+					tdName.innerHTML = res[i].name;
+					var tdTitle = document.createElement("td");
+					tdTitle.innerHTML = res[i].title;
+					var tdAuthor = document.createElement("td");
+					tdAuthor.innerHTML = res[i].author;
+					var tdPrice = document.createElement("td");
+					tdPrice.innerHTML = res[i].price;
+
+					tr.appendChild(tdId);
+					tr.appendChild(tdName);
+					tr.appendChild(tdTitle);
+					tr.appendChild(tdAuthor);
+					tr.appendChild(tdPrice);
+
+					tblBody.appendChild(tr);
+				}
+			},
+
+			error : function(result, statut, error) { // Handle errors
+				alert(error);
+			}
+		});
+	}
+
+	function searchByAuthor() {
+		$.ajax({
+			type : 'GET',
+			url : '/book/getBookByAuthor?author='+$('#txtSearch').val(),
+			contentType: "x-www-form-urlencoded",
+			success : function(res) { // Has to be there !
+				console.log("Response ");
+				var tblBody = document.getElementById("tblBookBody");
+				tblBody.innerHTML="";
+			
+				for (let i = 0; i < res.length; i++) {
+					var tr = document.createElement("tr");
+					var tdId = document.createElement("td");
+					tdId.innerHTML = res[i].id;
+					var tdName = document.createElement("td");
+					tdName.innerHTML = res[i].name;
+					var tdTitle = document.createElement("td");
+					tdTitle.innerHTML = res[i].title;
+					var tdAuthor = document.createElement("td");
+					tdAuthor.innerHTML = res[i].author;
+					var tdPrice = document.createElement("td");
+					tdPrice.innerHTML = res[i].price;
+
+					tr.appendChild(tdId);
+					tr.appendChild(tdName);
+					tr.appendChild(tdTitle);
+					tr.appendChild(tdAuthor);
+					tr.appendChild(tdPrice);
+
+					tblBody.appendChild(tr);
+				}
+			},
+
+			error : function(result, statut, error) { // Handle errors
+				alert(error);
+			}
+		});
+	}
+	
+	function purchaseBook()
+	{
+		$.ajax({
+			type : 'GET',
+			url : '/purchase/book?bookId='+$('#txtId').val(),
+			contentType: "x-www-form-urlencoded",
+			success : function(res) { 
+				console.log("Response ");
+				if(res==true) window.location.reload();
+				else
+				{
+					alert("Error : "+res);
+				}
+			},
+			error : function(result, statut, error) { // Handle errors
+				alert(error);
+			}
+		});
+	}
+	
+</script>
+
+</head>
+
+<body id="page-top">
+
+	<!-- Page Wrapper -->
+	<div id="wrapper">
+
+		<!-- Content Wrapper -->
+		<div id="content-wrapper" class="d-flex flex-column">
+
+			<!-- Main Content -->
+			<div id="content">
+
+				<!-- Begin Page Content -->
+				<div class="container-fluid bg-gradient-secondary">
+					<center>
+						<h1 style="height: 100px; font-size: 50px" align-items="center"
+							class="bg-gradient-light">
+							<b>Manage Books</b> &nbsp; <img height="35px" width="40px"
+								src="/img/logout.svg" onclick="Logout()" />
+
+						</h1>
+					</center>
+					<br>
+					<div class="row">
+						<div class="col-sm-6">
+							<input type="text" class="form-control form-control-user"
+								placeholder="Search Text here..." id="txtSearch">
+						</div>
+						<div class="col-sm-3">
+							<button onclick="searchByName()"
+								class="form-control form-control-user btn btn-primary">Search
+								By Name</button>
+						</div>
+						<div class="col-sm-3">
+							<button onclick="searchByAuthor()"
+								class="form-control form-control-user btn btn-primary">Search
+								By Author</button>
+						</div>
+					</div>
+
+					<br>
+
+					<div class="row">
+
+						<!-- Earnings (Monthly) Card Example -->
+						<div class="col-xl-12 col-md-12 mb-12">
+							<div class="card shadow mb-4">
+								<div class="card-header py-3">
+<!-- 									<h6 class="m-0 font-weight-bold text-primary">Books Table</h6>
+ -->								</div>
+								<div class="card-body">
+								<h3>Books Table</h3>
+									<div class="table-responsive">
+										<div id="dataTable_wrapper"
+											class="dataTables_wrapper dt-bootstrap4">
+											<div class="row"></div>
+											<div class="row">
+												<div class="col-sm-12">
+													<table class="table table-bordered dataTable" width="100%"
+														id="tblDataTable" cellspacing="0" role="grid"
+														aria-describedby="dataTable_info" style="width: 100%;">
+														<thead>
+															<tr role="row">
+																<th class="sorting" tabindex="0"
+																	aria-controls="dataTable" rowspan="1" colspan="1"
+																	aria-label="Name: activate to sort column ascending"
+																	style="width: 64.6094px;">id</th>
+
+																<th class="sorting" tabindex="0"
+																	aria-controls="dataTable" rowspan="1" colspan="1"
+																	aria-label="Position: activate to sort column ascending"
+																	style="width: 90px;">Name</th>
+
+																<th class="sorting sorting_asc" tabindex="0"
+																	aria-controls="dataTable" rowspan="1" colspan="1"
+																	aria-label="Office: activate to sort column descending"
+																	aria-sort="ascending" style="width: 57.1094px;">Title</th>
+
+																<th class="sorting" tabindex="0"
+																	aria-controls="dataTable" rowspan="1" colspan="1"
+																	aria-label="Start date: activate to sort column ascending"
+																	style="width: 64.5px;">Author</th>
+
+																<th class="sorting" tabindex="0"
+																	aria-controls="dataTable" rowspan="1" colspan="1"
+																	aria-label="Start date: activate to sort column ascending"
+																	style="width: 64.5px;">Price</th>
+														</thead>
+														<tbody id="tblBookBody">
+
+														</tbody>
+													</table>
+												</div>
+											</div>
+										</div>
+
+										<form id="myForm">
+											<div class="form-group row">
+												<div class="col-sm-4 mb-3 mb-sm-0">
+													<input type="text" class="form-control form-control-user"
+														id="txtId" name="txtId" placeholder="Id" readonly="true">
+												</div>
+												<div class="col-sm-4">
+													<input type="text" class="form-control form-control-user"
+														id="txtName" name="txtName" placeholder="Name">
+												</div>
+												<div class="col-sm-4">
+													<input type="text" class="form-control form-control-user"
+														id="txtTitle" name="txtTitle" placeholder="Title">
+												</div>
+											</div>
+											<div class="form-group row">
+												<div class="col-sm-6">
+													<input type="text" class="form-control form-control-user"
+														id="txtAuthor" name="txtAuthor" placeholder="Author">
+												</div>
+												<div class="col-sm-6">
+													<input type="text" class="form-control form-control-user"
+														id="txtPrice" name="txtPrice" placeholder="Price">
+												</div>
+											</div>
+											<div class="form-group row">
+												<div class="col-sm-3">
+													<button type="button"
+														class="form-control form-control-user btn btn-primary"
+														onclick="addBook()">Add Book</button>
+												</div>
+												<div class="col-sm-3">
+													<button type="button"
+														class="form-control form-control-user btn btn-primary"
+														onclick="updateBook()">Modify Book</button>
+												</div>
+												<div class="col-sm-3">
+													<button type="button"
+														class="form-control form-control-user btn btn-primary"
+														onclick="deleteBook()">Delete Book</button>
+												</div>
+												<div class="col-sm-3">
+													<button type="button"
+														class="form-control form-control-user btn btn-primary"
+														onclick="purchaseBook()">Purchase Book</button>
+												</div>
+
+											</div>
+											<div class="form-group row">
+												<div claass="col-sm-2"></div>
+												&nbsp;&nbsp; &nbsp;
+												<div claass="col-sm-10">
+													<label style="color: red" id="lblError"></label>
+												</div>
+											</div>
+
+										</form>
+										
+										
+										<h3>Purchase History</h3>
+										<div id="dataTable_wrapper"
+											class="dataTables_wrapper dt-bootstrap4">
+											<div class="row"></div>
+											<div class="row">
+												<div class="col-sm-12">
+													<table class="table table-bordered dataTable" width="100%"
+														id="tblPurchaseTable" cellspacing="0" role="grid"
+														aria-describedby="dataTable_info" style="width: 100%;">
+														<thead>
+															<tr role="row">
+																<th class="sorting" tabindex="0"
+																	aria-controls="dataTable" rowspan="1" colspan="1"
+																	aria-label="Name: activate to sort column ascending"
+																	style="width: 64.6094px;">id</th>
+
+<!-- 																<th class="sorting" tabindex="0"
+																	aria-controls="dataTable" rowspan="1" colspan="1"
+																	aria-label="Position: activate to sort column ascending"
+																	style="width: 90px;">Name</th> -->
+
+																<th class="sorting sorting_asc" tabindex="0"
+																	aria-controls="dataTable" rowspan="1" colspan="1"
+																	aria-label="Office: activate to sort column descending"
+																	aria-sort="ascending" style="width: 57.1094px;">Book Id</th>
+															</tr>
+														</thead>
+														<tbody id="tblPurchaseBody">
+
+														</tbody>
+													</table>
+												</div>
+											</div>
+										</div>
+										
+										
+										<div class="row">
+											<div class="col-sm-4">
+												<button type="button"
+													class="form-control form-control-user btn btn-primary"
+													onclick="Logout()">Logout</button>
+											</div>
+										</div>
+
+
+									</div>
+
+								</div>
+								<!-- End of Main Content -->
+
+							</div>
+							<!-- End of Content Wrapper -->
+
+						</div>
+						<!-- End of Page Wrapper -->
+
+						<!-- Scroll to Top Button-->
+						<a class="scroll-to-top rounded" href="#page-top"> <i
+							class="fas fa-angle-up"></i>
+						</a>
+
+
+						<!-- Bootstrap core JavaScript-->
+						<script src="/vendor/jquery/jquery.min.js"></script>
+						<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+						<!-- Core plugin JavaScript-->
+						<script src="/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+						<!-- Custom scripts for all pages-->
+						<script src="/js/sb-admin-2.min.js"></script>
+</body>
+
+</html>
